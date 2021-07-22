@@ -62,4 +62,32 @@ export let image = {
         "Name": "myimage"
       }]
     }
-  }
+}
+
+export let retargeting = {
+    "method": "add",
+    "params": {
+        "RetargetingLists": [{
+            "Type": "RETARGETING",
+            "Name": "Test",
+            "Rules": [{
+                "Arguments": [{
+                    "MembershipLifeSpan": 540,
+                    "ExternalId": 20054846
+                }],
+                "Operator": "ALL"
+            }]
+        }]
+    }
+}
+
+export let addAudience = {
+    "method": "add",
+    "params": {
+        "AudienceTargets": [{
+            "AdGroupId": 4155513,
+            "RetargetingListId": 5084
+        }]
+    }
+}
+  

@@ -9,13 +9,6 @@
           </button></router-link
         >
       </li>
-      <li>
-        <router-link class="link" to="dynamicad"
-          ><button class="btn btn-secondary">
-            Динамическое объявление
-          </button></router-link
-        >
-      </li>
     </ul>
   </div>
 </template>

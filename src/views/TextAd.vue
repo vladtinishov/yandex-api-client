@@ -21,38 +21,42 @@
         </div>
         <div class="section">
           <label for="startDate">Введите дату начала:</label>
-          <input type="date" id="startDate">
+          <input type="date" id="startDate" />
         </div>
         <div class="section">
           <label for="endDate">Введите дату окочания:</label>
-          <input type="date" id="endDate">
+          <input type="date" id="endDate" />
         </div>
         <div class="section">
           <label for="file">Выберите изображение:</label>
-          <input type="file" @change="addImage" id="file">
+          <input type="file" @change="addImage" id="file" />
         </div>
       </div>
     </div>
     <button @click="create" class="btn btn-outline-primary">Create</button>
+    <Footer />
   </div>
 </template>
 <script>
 import axios from "axios";
-import { campaign, adGroup, ad, image } from "@/queryData.js";
+import Footer from "@/components/Footer";
+import { campaign, adGroup, ad, image, addAudience } from "@/queryData.js";
 import { auth_data } from "@/auth.js";
 
 export default {
+  components: {
+    Footer,
+  },
   data() {
     return {
       campaignId: 0,
       adGroupId: 0,
-      imageData: "",
+      image: "",
     };
   },
   methods: {
     create() {
-      // this.createCampaign();
-      this.convertFile()
+      this.createCampaign();
     },
     createCampaign() {
       const startDate = document.getElementById("startDate").value;
@@ -65,13 +69,11 @@ export default {
           Authorization: "Bearer " + auth_data.token,
         },
       });
-      instance
-        .post("/campaigns", JSON.stringify(campaign))
-        .then((data) => {
-          this.campaignId = data.data.result.AddResults[0].Id;
-          this.createAdGroup(this.campaignId);
-          console.log(data.data);
-        });
+      instance.post("/campaigns", JSON.stringify(campaign)).then((data) => {
+        this.campaignId = data.data.result.AddResults[0].Id;
+        this.createAdGroup(this.campaignId);
+        console.log("campaign: ", data.data);
+      });
     },
     createAdGroup(campaignId) {
       adGroup.params.AdGroups[0].CampaignId = campaignId;
@@ -81,13 +83,24 @@ export default {
           Authorization: "Bearer " + auth_data.token,
         },
       });
-      instance
-        .post("/adgroups", JSON.stringify(adGroup))
-        .then((data) => {
-          this.adGroupId = data.data.result.AddResults[0].Id;
-          console.log(data.data);
-          this.createAd(this.adGroupId);
-        });
+      instance.post("/adgroups", JSON.stringify(adGroup)).then((data) => {
+        this.adGroupId = data.data.result.AddResults[0].Id;
+        console.log("ad group: ", data.data);
+        this.addAudience(this.adGroupId);
+      });
+    },
+    addAudience(adGroupId) {
+      addAudience.params.AudienceTargets[0].AdGroupId = adGroupId;
+      const instance = axios.create({
+        baseURL: "api/",
+        headers: {
+          Authorization: "Bearer " + auth_data.token,
+        },
+      });
+      instance.post("/audiencetargets", JSON.stringify(addAudience)).then((data) => {
+        console.log("audience: ", data.data);
+        this.createAd(adGroupId);
+      });
     },
     createAd(adGroupId) {
       ad.params.Ads[0].AdGroupId = adGroupId;
@@ -96,7 +109,7 @@ export default {
       ad.params.Ads[0].TextAd.Text =
         document.getElementById("description").value;
       ad.params.Ads[0].TextAd.Href = document.getElementById("href").value;
-
+      ad.params.Ads[0].TextAd.AdImageHash = this.imageData;
       const instance = axios.create({
         baseURL: "api/",
         headers: {
@@ -104,16 +117,18 @@ export default {
         },
       });
       instance.post("/ads", JSON.stringify(ad)).then((data) => {
-        console.log(data.data);
+        console.log("ad: ", data.data);
       });
     },
     addImage() {
-      var files = document.getElementById('file').files;
+      var files = document.getElementById("file").files;
       if (files.length > 0) {
         var reader = new FileReader();
         reader.readAsDataURL(files[0]);
         reader.onload = function () {
-          const imageData = reader.result.toString().replace(/^data:(.*,)?/, '');
+          const imageData = reader.result
+            .toString()
+            .replace(/^data:(.*,)?/, "");
           image.params.AdImages[0].ImageData = imageData;
           const instance = axios.create({
             baseURL: "api/",
@@ -122,11 +137,13 @@ export default {
             },
           });
           instance.post("/adimages", JSON.stringify(image)).then((data) => {
-            console.log(data.data);
+            if (data.data.result.AddResults[0].AdImageHash) {
+              this.image = data.data.result.AddResults[0].AdImageHash;
+            }
           });
         };
         reader.onerror = function (error) {
-          console.log('Error: ', error);
+          console.log("Error: ", error);
         };
       }
     },
