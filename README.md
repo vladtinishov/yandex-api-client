@@ -86,3 +86,5 @@ https://api-sandbox.direct.yandex.com/json/v5/audiencetargets
 </pre>
 
 объект *addAudience*, где в поле *AdGroupId* нужно указать id рекламной группы, а в *RetargetingListId* id таргетинговой группы.
+
+Документация по всем ресурсам находится [здесь](https://yandex.ru/dev/direct/doc/ref-v5/concepts/about.html)
